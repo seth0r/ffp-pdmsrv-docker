@@ -1,6 +1,6 @@
 NAME:=ffp-pdmsrv
-VOLUMES:=
-PORTS:=-p 8942:8942/udp
+VOLUMES:=-v ${CURDIR}/certs/:/etc/openvpn/certs
+PORTS:=-p 8942:8942/udp -p 1195:1195/udp -p 1701:1701/udp
 CONFIG:=config.env
 
 CID=`docker ps | grep ${NAME} | cut -d' ' -f1`
