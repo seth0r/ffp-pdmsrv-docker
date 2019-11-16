@@ -1,0 +1,15 @@
+#!/usr/bin/env python
+import subprocess
+import json
+
+fmt="{olsrInterface:<12} {localIP:<15} {remoteIP:<15} {vtime:<6} {linkQuality:<8} {neighborLinkQuality:<8} {linkCost:7}"
+print(fmt.format(olsrInterface="Interface",localIP="LocalIP",remoteIP="RemoteIP",vtime="vTime",linkQuality="LQ",neighborLinkQuality="NLQ",linkCost="ETX"))
+
+fmt="{olsrInterface:<12} {localIP:<15} {remoteIP:<15} {vtime:<6} {linkQuality:<08.6} {neighborLinkQuality:<08.6} {linkCost:<7.4f}"
+p = subprocess.Popen(("curl","127.0.0.1:9090/links"),stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+try:
+    j = json.loads(p.stdout.read())
+    for l in j["links"]:
+        print(fmt.format(**l))
+except Exception as ex:
+    print(ex)
