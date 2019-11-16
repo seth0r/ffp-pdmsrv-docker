@@ -14,7 +14,7 @@ config:
 	test -s ${CONFIG} || ( echo -e "\nconfig.env does not exist or is empty. Exiting...\n" ; exit 1 )
 .PHONY: config
 
-run: build config
+run: stop build config
 	docker run -d --privileged --env-file=${CONFIG}	${VOLUMES} ${PORTS} ${RUNARGS} ${NAME}
 .PHONY: run
 
@@ -23,7 +23,7 @@ shell: running
 .PHONY: shell
 
 stop:
-	docker stop `docker ps | grep ${NAME} | cut -d' ' -f1`
+	-docker stop "${CID}"
 .PHONY: stop
 
 log: running
