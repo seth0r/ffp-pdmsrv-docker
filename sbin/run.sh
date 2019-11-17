@@ -57,6 +57,7 @@ if [ ! -z "$DIGGERIPS" -a ! -z "$DIGGERDHCP" ]; then
         echo "Creating bridge interface ${BRIDGES[i]} with IP $BIP..."
         ensure_bridge "${BRIDGES[i]}"
         ifconfig "${BRIDGES[i]}" "$BIP" netmask "${DIGGERIPS[-1]}"
+        ip route add "`calcnet ${BIP} ${DIGGERIPS[-1]}`/${DIGGERIPS[-1]}" table nets dev "${BRIDGES[i]}"
         args="$args -i ${BRIDGES[i]}"
         OLSR_IF_MESH+=( ${BRIDGES[i]} )
     done
@@ -78,11 +79,17 @@ export KEYFILE=`ls /etc/openvpn/certs/*.key | head -n1`
 if [ ! -z "$OPENVPNNET" -a -s "$CAFILE" -a -s "$DHFILE" -a -s "$CERTFILE" -a -s "$KEYFILE" ];then
     OPENVPNNET=`fullips $OPENVPNNET`
     envsubst < /etc/openvpn/pdmvpn.conf.prep > /etc/openvpn/pdmvpn.conf
+    openvpn --mktun --dev-type tap --dev openvpn
+    ip link set dev openvpn up
+    ensure_policy from all iif openvpn lookup nets prio 2000
+    ensure_policy from all iif openvpn lookup uplink prio 5000
     openvpn --config /etc/openvpn/pdmvpn.conf &
     children="$children $!"
     OLSR_IF_MESH+=( openvpn )
+    NET=`calcnet ${OPENVPNNET}`
     OPENVPNNET=( $OPENVPNNET )
-    OLSR_HNA+=("`calcnet ${OPENVPNNET[0]} ${OPENVPNNET[-1]}` ${OPENVPNNET[-1]}")
+    ip route add "${NET}/${DIGGERIPS[-1]}" table nets dev openvpn
+    OLSR_HNA+=("${NET} ${OPENVPNNET[-1]}")
 fi
 
 ### L2TP Server-to-Server
@@ -91,6 +98,9 @@ if [ ! -z "$S2S_IP" -a ! -z "$S2S_ID" ];then
     ensure_bridge "s2s"
     ifconfig s2s "`fullips ${S2S_IP[0]}`" netmask "${S2S_IP[1]}"
     OLSR_IF_ETHER+=( s2s )
+    NET=`calcnet $( fullips ${S2S_IP[0]} ) ${S2S_IP[1]}`
+    ip route add "${NET}/${S2S_IP[1]}" table nets dev s2s
+    OLSR_HNA+=("${NET} ${S2S_IP[1]}")
     for TID in `seq 11 19`; do
         p="S2S_$TID"
         if [ ! -z "${!p}" -a "$TID" -ne "$S2S_ID" ]; then

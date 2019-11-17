@@ -17,6 +17,7 @@ ensure_bridge()
 #    ip addr add 10.254.0.2/16 dev $brname
     # TODO Policy routing should probably not be hardcoded here?
 #    ensure_policy from all iif $brname lookup olsr prio 1000
+    ensure_policy from all iif $brname lookup nets prio 2000
     ensure_policy from all iif $brname lookup uplink prio 5000
     # Disable forwarding between bridge ports
     ebtables -A FORWARD --logical-in $brname -j DROP
