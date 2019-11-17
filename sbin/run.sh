@@ -25,6 +25,7 @@ export IP=`ip --brief addr show dev eth0 | sed 's/ \+/ /g' | cut -d' ' -f3 | cut
 echo "IP: $IP"
 
 ip rule add lookup olsr prio 1000
+iptables -t nat -A POSTROUTING -o uplink -j MASQUERADE
 
 calcnet() {
     IFS=. read -r i1 i2 i3 i4 <<< "$1"
