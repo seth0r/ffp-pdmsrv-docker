@@ -15,7 +15,7 @@ echo "Starting...        "
 
 hostname $HOSTNAME
 
-BRIDGES=( digger1462 digger1446 digger1312 )
+BRIDGES=( digger1446 digger1462 digger1312 )
 
 OLSR_IF_MESH=()
 OLSR_IF_ETHER=()
