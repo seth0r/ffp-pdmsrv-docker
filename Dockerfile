@@ -41,7 +41,8 @@ COPY openvpn.conf /etc/openvpn/pdmvpn.conf.prep
 RUN echo "111     olsr" >> /etc/iproute2/rt_tables && \
     echo "112     olsr-default" >> /etc/iproute2/rt_tables && \
     echo "113     olsr-tunnel" >> /etc/iproute2/rt_tables && \
-    echo "114     uplink" >> /etc/iproute2/rt_tables
+    echo "114     nets" >> /etc/iproute2/rt_tables && \
+    echo "115     uplink" >> /etc/iproute2/rt_tables
 COPY olsrd.conf /etc/olsrd.conf.prep
 
 COPY sbin/* /usr/local/sbin/
