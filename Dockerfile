@@ -2,7 +2,7 @@ FROM       debian:stable
 MAINTAINER Seth0r "https://github.com/seth0r"
 
 ARG PKGS="\
-    vim procps bsdmainutils gettext syslinux-utils \
+    vim procps bsdmainutils gettext syslinux-utils traceroute \
     net-tools iptables iproute2 bridge-utils dhcpcd5 dnsmasq openvpn \
     libnfnetlink0 libnetfilter-conntrack3 libasyncns0 libnl-3-200 libnl-genl-3-200 bison flex \
     python python-setuptools python-cffi python-netfilter "
