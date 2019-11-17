@@ -58,7 +58,7 @@ if [ ! -z "$DIGGERIPS" -a ! -z "$DIGGERDHCP" ]; then
         echo "Creating bridge interface ${BRIDGES[i]} with IP $BIP..."
         ensure_bridge "${BRIDGES[i]}"
         ifconfig "${BRIDGES[i]}" "$BIP" netmask "${DIGGERIPS[-1]}"
-        ip route add "`calcnet ${BIP} ${DIGGERIPS[-1]}`/${DIGGERIPS[-1]}" table nets dev "${BRIDGES[i]}"
+        ip route add "`calcnet ${BIP} ${DIGGERIPS[-1]}`/${DIGGERIPS[-1]}" table nets dev "${BRIDGES[i]}" src ${BIP}
         args="$args -i ${BRIDGES[i]}"
         OLSR_IF_MESH+=( ${BRIDGES[i]} )
     done
