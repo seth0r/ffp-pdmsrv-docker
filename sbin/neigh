@@ -2,14 +2,27 @@
 import subprocess
 import json
 
-fmt="{olsrInterface:<12} {localIP:<15} {remoteIP:<15} {vtime:<6} {linkQuality:<8} {neighborLinkQuality:<8} {linkCost:7}"
-print(fmt.format(olsrInterface="Interface",localIP="LocalIP",remoteIP="RemoteIP",vtime="vTime",linkQuality="LQ",neighborLinkQuality="NLQ",linkCost="ETX"))
+names = {}
+try:
+    f = open("/tmp/hosts.olsr","rt")
+    l = f.readline()
+    while l != "":
+        l = l.split()
+        if len(l) >= 2 and not l[0].startswith("#"):
+            names[ l[0] ] = l[1]
+        l = f.readline()
+    f.close()
+except Exception as ex:
+    print(ex)
 
-fmt="{olsrInterface:<12} {localIP:<15} {remoteIP:<15} {vtime:<6} {linkQuality:<08.6} {neighborLinkQuality:<08.6} {linkCost:<7.4f}"
+fmt="{olsrInterface:<12} {localIP:<15} {remoteIP:<15} {vtime:<6} {linkQuality:<8} {neighborLinkQuality:<8} {linkCost:10} {hostname}"
+print(fmt.format(olsrInterface="Interface",localIP="LocalIP",remoteIP="RemoteIP",vtime="vTime",linkQuality="LQ",neighborLinkQuality="NLQ",linkCost="ETX",hostname="Hostname"))
+
+fmt="{olsrInterface:<12} {localIP:<15} {remoteIP:<15} {vtime:<6} {linkQuality:<08.6} {neighborLinkQuality:<08.6} {linkCost:<10.4f} {hostname}"
 p = subprocess.Popen(("curl","127.0.0.1:9090/links"),stdout=subprocess.PIPE,stderr=subprocess.PIPE)
 try:
     j = json.loads(p.stdout.read())
     for l in j["links"]:
-        print(fmt.format(**l))
+        print(fmt.format( hostname = names.get( l["remoteIP"], "" ), **l ))
 except Exception as ex:
     print(ex)
