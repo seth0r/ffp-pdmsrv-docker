@@ -22,7 +22,7 @@ fmt="{olsrInterface:<12} {localIP:<15} {remoteIP:<15} {vtime:<6} {linkQuality:<0
 p = subprocess.Popen(("curl","127.0.0.1:9090/links"),stdout=subprocess.PIPE,stderr=subprocess.PIPE)
 try:
     j = json.loads(p.stdout.read())
-    for l in j["links"]:
+    for l in sorted( j["links"], key=lambda x: (x["linkCost"],x["remoteIP"])):
         print(fmt.format( hostname = names.get( l["remoteIP"], "" ), **l ))
 except Exception as ex:
     print(ex)
