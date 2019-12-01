@@ -15,6 +15,9 @@ echo "Starting...        "
 
 hostname $HOSTNAME
 
+printenv | sed 's/^\(.*\)$/export "\1"/g' > /tmp/docker.env
+cron
+
 BRIDGES=( digger1446 digger1462 digger1312 )
 
 OLSR_IF_MESH=()

@@ -1,0 +1,3 @@
+* * * * * /usr/local/sbin/ffp-collect.sh collect > /proc/1/fd/1 2>/proc/1/fd/2
+*/10 * * * * /usr/local/sbin/ffp-collect.sh upload > /proc/1/fd/1 2>/proc/1/fd/2
+

@@ -2,7 +2,7 @@ FROM       debian:stable
 MAINTAINER Seth0r "https://github.com/seth0r"
 
 ARG PKGS="\
-    vim procps bsdmainutils gettext syslinux-utils traceroute \
+    vim procps bsdmainutils gettext syslinux-utils traceroute cron \
     net-tools iptables iproute2 bridge-utils dhcpcd5 dnsmasq openvpn \
     libnfnetlink0 libnetfilter-conntrack3 libasyncns0 libnl-3-200 libnl-genl-3-200 bison flex \
     python python-setuptools python-cffi python-netfilter "
@@ -34,6 +34,10 @@ RUN apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 COPY .vimrc /root/.vimrc
+
+COPY ffp-collect-cron /etc/cron.d/ffp-collect-cron
+RUN chmod 0644 /etc/cron.d/ffp-collect-cron
+RUN crontab /etc/cron.d/ffp-collect-cron
 
 COPY l2tp_broker.conf /etc/l2tp_broker.conf.prep
 COPY openvpn.conf /etc/openvpn/pdmvpn.conf.prep
