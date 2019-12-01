@@ -53,7 +53,7 @@ fullips() {
 if [ ! -z "$DIGGERIPS" -a ! -z "$DIGGERDHCP" ]; then
     envsubst < /etc/l2tp_broker.conf.prep > /etc/l2tp_broker.conf
     source "/usr/local/sbin/bridge_functions.sh"
-    args="-d -p0"
+    args="-d -p0 -O3 -O6"
     args="$args -F `fullips $DIGGERDHCP | sed 's/\s/,/g'`"
     DIGGERIPS=( $DIGGERIPS )
     for ((i=0;i<${#BRIDGES[@]};++i)); do
