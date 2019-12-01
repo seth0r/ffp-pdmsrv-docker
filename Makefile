@@ -15,7 +15,7 @@ config:
 .PHONY: config
 
 run: stop build config
-	docker run -d --privileged --env-file=${CONFIG}	${VOLUMES} ${PORTS} ${RUNARGS} ${NAME}
+	docker run -d --privileged --env-file=${CONFIG} -e "GIT_COMMIT=`git rev-parse HEAD`" -e "HOSTHOSTNAME=`hostname`" ${VOLUMES} ${PORTS} ${RUNARGS} ${NAME}
 .PHONY: run
 
 shell: running
