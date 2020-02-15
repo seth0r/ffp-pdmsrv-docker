@@ -15,7 +15,7 @@ config:
 	test -s ${CONFIG} || ( echo -e "\nconfig.env does not exist or is empty. Exiting...\n" ; exit 1 )
 .PHONY: config
 
-run: stop build config
+run: stop remove build config
 	docker run -d --privileged --restart ${RESTART} --name ${NAME} --env-file=${CONFIG} -e "GIT_COMMIT=`git rev-parse HEAD`" -e "HOSTHOSTNAME=`hostname`" ${VOLUMES} ${PORTS} ${RUNARGS} ${NAME}
 .PHONY: run
 
@@ -25,6 +25,10 @@ shell: running
 
 stop:
 	-docker stop "${CID}"
+.PHONY: stop
+
+remove:
+	-docker container rm "${NAME}"
 .PHONY: stop
 
 log: running
