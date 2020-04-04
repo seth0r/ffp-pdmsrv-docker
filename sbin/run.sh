@@ -20,8 +20,7 @@ cron
 
 BRIDGES=( digger1446 digger1438 digger1422 digger1346 digger1312 )
 
-OLSR_IF_MESH=()
-OLSR_IF_ETHER=()
+OLSR_IF=()
 OLSR_HNA=()
 
 export IP=`ip --brief addr show dev eth0 | sed 's/ \+/ /g' | cut -d' ' -f3 | cut -d/ -f1`
@@ -63,7 +62,6 @@ if [ ! -z "$DIGGERIPS" -a ! -z "$DIGGERDHCP" ]; then
         ifconfig "${BRIDGES[i]}" "$BIP" netmask "${DIGGERIPS[-1]}"
         ip route add "`calcnet ${BIP} ${DIGGERIPS[-1]}`/${DIGGERIPS[-1]}" table nets dev "${BRIDGES[i]}" src ${BIP}
         args="$args -i ${BRIDGES[i]}"
-        OLSR_IF_MESH+=( ${BRIDGES[i]} )
     done
     OLSR_HNA+=("`calcnet $( fullips ${DIGGERIPS[0]} ) ${DIGGERIPS[-1]}` ${DIGGERIPS[-1]}")
     echo "Starting dnsmasq..."
@@ -89,7 +87,7 @@ if [ ! -z "$OPENVPNNET" -a -s "$CAFILE" -a -s "$DHFILE" -a -s "$CERTFILE" -a -s 
     ensure_policy from all iif openvpn lookup uplink prio 5000
     openvpn --config /etc/openvpn/pdmvpn.conf &
     children="$children $!"
-    OLSR_IF_MESH+=( openvpn )
+    OLSR_IF+=( openvpn )
     NET=`calcnet ${OPENVPNNET}`
     OPENVPNNET=( $OPENVPNNET )
     ip route add "${NET}/${DIGGERIPS[-1]}" table nets dev openvpn
@@ -101,7 +99,7 @@ if [ ! -z "$S2S_IP" -a ! -z "$S2S_ID" ];then
     S2S_IP=( $S2S_IP )
     ensure_bridge "s2s"
     ifconfig s2s "`fullips ${S2S_IP[0]}`" netmask "${S2S_IP[1]}"
-    OLSR_IF_ETHER+=( s2s )
+    OLSR_IF+=( s2s )
     NET=`calcnet $( fullips ${S2S_IP[0]} ) ${S2S_IP[1]}`
     ip route add "${NET}/${S2S_IP[1]}" table nets dev s2s
     OLSR_HNA+=("${NET} ${S2S_IP[1]}")
@@ -141,58 +139,47 @@ if [ ! -z "$TDUPLINKS" ];then
     children="$children $!"
 fi
 
+while true; do
+    for c in $children; do
+        kill -s 0 $pid || exit
+    done
 ### OLSR
-envsubst < /etc/olsrd.conf.prep > /etc/olsrd.conf
-for p in /usr/local/lib/olsrd_*.so.*; do
-    p=`basename $p`
-    px=`echo $p | sed 's/\.so\.[0-9\.]\+/.so.x/g'`
-    sed -i "s/$px/$p/g" /etc/olsrd.conf
-done
-if [ "$OLSR_DROPHNA" == "1" ]; then
-    for p in /usr/local/lib/olsrd_drophna.so.*; do
-        echo -e "LoadPlugin \"`basename $p`\"\n{\n}\n" >> /etc/olsrd.conf
+    envsubst < /etc/olsrd.conf.prep > /etc/olsrd.conf
+    for p in /usr/local/lib/olsrd_*.so.*; do
+        p=`basename $p`
+        px=`echo $p | sed 's/\.so\.[0-9\.]\+/.so.x/g'`
+        sed -i "s/$px/$p/g" /etc/olsrd.conf
     done
-fi
-
-(
-    echo -e "Hna4\n{"
-    for hna in "${OLSR_HNA[@]}"; do
-        echo -e "\t$hna"
-    done
-    echo -e "}\n"
-) >> /etc/olsrd.conf
-
-for i in "${OLSR_IF_MESH[@]}"; do
-    p="OLSR_LQMULT_$i"
-    lqmult=${!p}
-    if [ -z $lqmult ]; then lqmult=$OLSR_LQMULT_MESH; fi
-    if [ -z $lqmult ]; then lqmult=$OLSR_LQMULT; fi
-    (
-        echo -e "Interface \"$i\"\n{"
-    if [ ! -z $lqmult ]; then
-        echo -e "\tLinkQualityMult default $lqmult"
+    if [ "$OLSR_DROPHNA" == "1" ]; then
+        for p in /usr/local/lib/olsrd_drophna.so.*; do
+            echo -e "LoadPlugin \"`basename $p`\"\n{\n}\n" >> /etc/olsrd.conf
+        done
     fi
-        echo -e "\tMode \"mesh\""
+
+    (
+        echo -e "Hna4\n{"
+        for hna in "${OLSR_HNA[@]}"; do
+            echo -e "\t$hna"
+        done
         echo -e "}\n"
     ) >> /etc/olsrd.conf
+
+    for i in "${OLSR_IF[@]}" $(ls /sys/class/net | grep "^digger"); do
+        p="OLSR_LQMULT_$i"
+        lqmult=${!p}
+        p="OLSR_MODE_$i"
+        mode=${!p}
+        (
+            echo -e "Interface \"$i\"\n{"
+        if [ ! -z $lqmult ]; then
+            echo -e "\tLinkQualityMult default $lqmult"
+        fi
+        if [ ! -z $mode ]; then
+            echo -e "\tMode \"$mode\""
+        fi
+            echo -e "}\n"
+        ) >> /etc/olsrd.conf
+    done
+
+    olsrd -f /etc/olsrd.conf -nofork
 done
-
-for i in "${OLSR_IF_ETHER[@]}"; do
-    p="OLSR_LQMULT_$i"
-    lqmult=${!p}
-    if [ -z $lqmult ]; then lqmult=$OLSR_LQMULT_ETHER; fi
-    if [ -z $lqmult ]; then lqmult=$OLSR_LQMULT; fi
-    (
-        echo -e "Interface \"$i\"\n{"
-    if [ ! -z $lqmult ]; then
-        echo -e "\tLinkQualityMult default $lqmult"
-    fi
-        echo -e "\tMode \"ether\""
-        echo -e "}\n"
-    ) >> /etc/olsrd.conf
-done
-
-olsrd -f /etc/olsrd.conf -nofork &
-children="$children $!"
-
-wait $children
