@@ -160,4 +160,5 @@ while true; do
     done
 
     olsrd -f /etc/olsrd.conf -nofork
+    sleep 1
 done
