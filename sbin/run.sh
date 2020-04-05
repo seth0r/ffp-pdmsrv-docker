@@ -18,8 +18,6 @@ hostname $HOSTNAME
 printenv | sed 's/^\(.*\)$/export "\1"/g' > /tmp/docker.env
 cron
 
-BRIDGES=( digger1446 digger1438 digger1422 digger1346 digger1312 )
-
 OLSR_IF=()
 OLSR_HNA=()
 
@@ -35,16 +33,8 @@ iptables -t nat -A POSTROUTING -o uplink -j MASQUERADE
 if [ ! -z "$DIGGERIPS" -a ! -z "$DIGGERDHCP" ]; then
     envsubst < /etc/l2tp_broker.conf.prep > /etc/l2tp_broker.conf
     args="-d -p0 -O3 -O6"
-    args="$args -F `fullips $DIGGERDHCP | sed 's/\s/,/g'`"
+    args="$args -F `fullips $DIGGERDHCP | sed 's/\s/,/g'` -i digger*"
     DIGGERIPS=( $DIGGERIPS )
-    for ((i=0;i<${#BRIDGES[@]};++i)); do
-        BIP=`fullips ${DIGGERIPS[i]}`
-        echo "Creating bridge interface ${BRIDGES[i]} with IP $BIP..."
-        ensure_bridge "${BRIDGES[i]}"
-        ifconfig "${BRIDGES[i]}" "$BIP" netmask "${DIGGERIPS[-1]}"
-        ip route add "`calcnet ${BIP} ${DIGGERIPS[-1]}`/${DIGGERIPS[-1]}" table nets dev "${BRIDGES[i]}" src ${BIP}
-        args="$args -i ${BRIDGES[i]}"
-    done
     OLSR_HNA+=("`calcnet $( fullips ${DIGGERIPS[0]} ) ${DIGGERIPS[-1]}` ${DIGGERIPS[-1]}")
     echo "Starting dnsmasq..."
     dnsmasq $args &
