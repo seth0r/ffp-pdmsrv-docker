@@ -139,8 +139,14 @@ while true; do
     for i in "${OLSR_IF[@]}" $(ls /sys/class/net | grep "^digger"); do
         p="OLSR_LQMULT_$i"
         lqmult=${!p}
+        if [ -z $lqmult ] && [[ $i == digger* ]]; then
+            lqmult=$OLSR_LQMULT_DIGGER
+        fi
         p="OLSR_MODE_$i"
         mode=${!p}
+        if [ -z $mode ] && [[ $i == digger* ]]; then
+            mode=$OLSR_MODE_DIGGER
+        fi
         (
             echo -e "Interface \"$i\"\n{"
         if [ ! -z $lqmult ]; then
