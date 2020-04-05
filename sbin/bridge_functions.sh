@@ -1,3 +1,20 @@
+#!/bin/bash
+source /tmp/docker.env
+
+fullips() {
+    s=""
+    while [ ! -z "$1" ]; do
+        octs=`echo "$1" | sed 's/\./ /g' | wc -w`
+        if [ $octs -lt 4 -a "$1" == "`echo $1 | sed 's/[^0-9\.]//g'`" ];then
+            s="$s ${IP_BASE}$1"
+        else
+            s="$s $1"
+        fi
+        shift
+    done
+    echo $s
+}
+
 calcnet() {
     IFS=. read -r i1 i2 i3 i4 <<< "$1"
     IFS=. read -r m1 m2 m3 m4 <<< "$2"

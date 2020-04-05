@@ -29,29 +29,11 @@ echo "IP: $IP"
 ip rule add lookup olsr prio 1000
 iptables -t nat -A POSTROUTING -o uplink -j MASQUERADE
 
-calcnet() {
-    IFS=. read -r i1 i2 i3 i4 <<< "$1"
-    IFS=. read -r m1 m2 m3 m4 <<< "$2"
-    printf "%d.%d.%d.%d\n" "$((i1 & m1))" "$((i2 & m2))" "$((i3 & m3))" "$((i4 & m4))"
-}
-fullips() {
-    s=""
-    while [ ! -z "$1" ]; do
-        octs=`echo "$1" | sed 's/\./ /g' | wc -w`
-        if [ $octs -lt 4 -a "$1" == "`echo $1 | sed 's/[^0-9\.]//g'`" ];then
-            s="$s ${IP_BASE}$1"
-        else
-            s="$s $1"
-        fi
-        shift
-    done
-    echo $s
-}
+. `dirname $0`/bridge_functions.sh
 
 ### Tunneldigger
 if [ ! -z "$DIGGERIPS" -a ! -z "$DIGGERDHCP" ]; then
     envsubst < /etc/l2tp_broker.conf.prep > /etc/l2tp_broker.conf
-    source "/usr/local/sbin/bridge_functions.sh"
     args="-d -p0 -O3 -O6"
     args="$args -F `fullips $DIGGERDHCP | sed 's/\s/,/g'`"
     DIGGERIPS=( $DIGGERIPS )
