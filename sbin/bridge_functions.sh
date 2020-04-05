@@ -45,11 +45,14 @@ ensure_bridge()
     # Disable forwarding between bridge ports
     ebtables -A FORWARD --logical-in $brname -j DROP
 
-    for $BIP in ${DIGGERIPS[@]::${#DIGGERIPS[@]}-1}; do
+    DIGGERIPS=( $DIGGERIPS )
+    for BIP in ${DIGGERIPS[@]::${#DIGGERIPS[@]}-1}; do
+        BIP=`fullips $BIP`
         ip -f inet addr show | grep "$BIP/" && continue
 
         ifconfig "$brname" "$BIP" netmask "${DIGGERIPS[-1]}"
         ip route add "`calcnet ${BIP} ${DIGGERIPS[-1]}`/${DIGGERIPS[-1]}" table nets dev "$brname" src ${BIP}
+        break
     done
     killall olsrd
   fi
