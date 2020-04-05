@@ -113,7 +113,7 @@ fi
 
 while true; do
     for c in $children; do
-        kill -s 0 $pid || exit
+        kill -s 0 $c || exit
     done
 ### OLSR
     envsubst < /etc/olsrd.conf.prep > /etc/olsrd.conf
