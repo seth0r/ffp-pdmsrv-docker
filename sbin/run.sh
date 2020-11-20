@@ -41,7 +41,7 @@ if [ ! -z "$DIGGERIPS" -a ! -z "$DIGGERDHCP" ]; then
     children="$children $!"
 
     echo "Starting tunneldigger_broker..."
-    python -m tunneldigger_broker.main /etc/l2tp_broker.conf &
+    python3 -m tunneldigger_broker.main /etc/l2tp_broker.conf &
     children="$children $!"
 fi
 

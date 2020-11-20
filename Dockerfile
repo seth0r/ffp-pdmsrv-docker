@@ -5,11 +5,11 @@ ARG PKGS="\
     vim procps bsdmainutils gettext syslinux-utils traceroute cron \
     net-tools iptables iproute2 bridge-utils dhcpcd5 dnsmasq openvpn \
     libnfnetlink0 libnetfilter-conntrack3 libasyncns0 libnl-3-200 libnl-genl-3-200 bison flex \
-    python python-setuptools python-cffi python-netfilter "
+    python3 python3-setuptools python3-cffi python3-netfilter "
 
 ARG BUILDPKGS="\
     build-essential cmake git \
-    python-dev libnfnetlink-dev libnetfilter-conntrack-dev libffi-dev libevent-dev \
+    python3-dev libnfnetlink-dev libnetfilter-conntrack-dev libffi-dev libevent-dev \
     libnl-genl-3-dev libnl-3-dev libasyncns-dev libgps-dev"
 
 RUN apt-get update
@@ -20,7 +20,7 @@ RUN apt-get install -y $PKGS
 RUN apt-get install -y $BUILDPKGS
 
 RUN git clone https://github.com/wlanslovenija/tunneldigger.git /tunneldigger && \
-    cd /tunneldigger/broker && python setup.py install && \
+    cd /tunneldigger/broker && python3 setup.py install && \
     cd /tunneldigger/client && cmake . && make && make install && \
     rm -r /tunneldigger
 
