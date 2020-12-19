@@ -19,7 +19,7 @@ RUN apt-get install -y $PKGS
 
 RUN apt-get install -y $BUILDPKGS
 
-RUN git clone https://github.com/wlanslovenija/tunneldigger.git /tunneldigger && \
+RUN git clone -b legacy https://github.com/wlanslovenija/tunneldigger.git /tunneldigger && \
     cd /tunneldigger/broker && python3 setup.py install && \
     cd /tunneldigger/client && cmake . && make && make install && \
     rm -r /tunneldigger
