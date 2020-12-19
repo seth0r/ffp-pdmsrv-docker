@@ -79,10 +79,8 @@ if [ ! -z "$S2S_IP" -a ! -z "$S2S_ID" ];then
         p="S2S_$TID"
         if [ ! -z "${!p}" -a "$TID" -ne "$S2S_ID" ]; then
             RIP=`gethostip "${!p}" | cut -d' ' -f2`
-            ip l2tp add tunnel remote ${RIP} local ${IP} tunnel_id ${TID} peer_tunnel_id ${S2S_ID} encap udp udp_sport 17${TID} udp_dport 1701 udp_csum on
+            ip l2tp add tunnel remote ${RIP} local ${IP} tunnel_id ${TID} peer_tunnel_id ${S2S_ID} encap udp udp_sport 17${TID} udp_dport 17${S2S_ID} udp_csum on
             ip l2tp add session name s2s_${TID} tunnel_id ${TID} session_id ${TID} peer_session_id ${S2S_ID}
-            iptables -t nat -I PREROUTING 1 -i eth0 -p udp -s ${RIP} -d ${IP} --sport 1701 --dport 1701 -j DNAT --to-destination ${IP}:17${TID}
-            iptables -t nat -I POSTROUTING 1 -o eth0 -p udp -s ${IP} -d ${RIP} --sport 17${TID} --dport 1701 -j SNAT --to-source ${IP}:1701
             ip link set dev s2s_${TID} up
             brctl addif s2s s2s_${TID}
         fi

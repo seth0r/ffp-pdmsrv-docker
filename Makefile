@@ -1,6 +1,6 @@
 NAME:=ffp-pdmsrv
 VOLUMES:=-v ${CURDIR}/certs/:/etc/openvpn/certs
-PORTS:=-p 8942:8942/udp -p 1195:1195/udp -p 1701:1701/udp
+PORTS:=-p 8942:8942/udp -p 1195:1195/udp
 CONFIG:=config.env
 RESTART:=unless-stopped
 
@@ -16,7 +16,7 @@ config:
 .PHONY: config
 
 run: stop remove build config
-	docker run -d --privileged --restart ${RESTART} --name ${NAME} --env-file=${CONFIG} -e "GIT_COMMIT=`git rev-parse HEAD`" -e "HOSTHOSTNAME=`hostname`" ${VOLUMES} ${PORTS} ${RUNARGS} ${NAME}
+	docker run -d --privileged --restart ${RESTART} --name ${NAME} --env-file=${CONFIG} -e "GIT_COMMIT=`git rev-parse HEAD`" -e "HOSTHOSTNAME=`hostname`" ${VOLUMES} ${PORTS} `for s in $$(./s2s_slots.sh ${CONFIG}); do echo "-p 17$$s:17$$s/udp"; done` ${RUNARGS} ${NAME}
 .PHONY: run
 
 shell: running
